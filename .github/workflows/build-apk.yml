@@ -1,5 +1,7 @@
 name: Build APK
 on: [push, workflow_dispatch]
+permissions:
+  contents: write
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -21,3 +23,9 @@ jobs:
       - run: cd android && ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with: { name: HomeworkHunt-apk, path: android/app/build/outputs/apk/debug/app-debug.apk }
+      - name: Publish release (easy download link)
+        env: { GH_TOKEN: "${{ github.token }}" }
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk HomeworkHunt.apk
+          gh release delete latest --yes --cleanup-tag || true
+          gh release create latest HomeworkHunt.apk --title "Homework Hunt (latest APK)" --notes "Download HomeworkHunt.apk, i-install sa Android phone."
